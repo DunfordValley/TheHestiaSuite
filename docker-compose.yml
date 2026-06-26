@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+
+  crm-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crm_frontend
+    restart: always
+    depends_on:
+      - crm-backend
+    networks:
+      - crm-net
+
+  crm-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crm_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgres://crm_user:${POSTGRES_PASSWORD:-SecurePassword123}@crm-db:5432/crm_prod
+      PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      crm-db:
+        condition: service_healthy
+    networks:
+      - crm-net
+
+  crm-db:
+    image: postgres:16-alpine
+    container_name: crm_database
+    restart: always
+    environment:
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SecurePassword123}
+      POSTGRES_DB: crm_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_prod"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - crm-net
+
+  # Cloudflare Zero Trust Tunnel — activate with: docker-compose --profile production up -d
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_tunnel
+    restart: always
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - crm-frontend
+    networks:
+      - crm-net
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+
+networks:
+  crm-net:
+    driver: bridge

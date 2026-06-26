@@ -1,0 +1,23 @@
+# Environment
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build output
+frontend/dist/
+backend/dist/
+
+# Docker
+postgres_data/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
