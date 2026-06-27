@@ -1,10 +1,11 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, KanbanSquare, Flame } from 'lucide-react';
+import { LayoutDashboard, Users, KanbanSquare, Settings, Flame } from 'lucide-react';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { to: '/contacts', label: 'Contacts', icon: Users },
   { to: '/pipeline', label: 'Pipeline', icon: KanbanSquare },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Layout() {

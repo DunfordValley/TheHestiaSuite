@@ -48,6 +48,16 @@ export interface Interaction {
   summary: string;
   occurred_at: string;
   created_at: string;
+  // Email integration fields (null for manually-logged interactions)
+  gmail_message_id?: string | null;
+  email_subject?: string | null;
+  email_to?: string | null;
+  email_from?: string | null;
+  direction?: 'sent' | 'received' | null;
+  source?: 'manual' | 'gmail_sent' | 'gmail_sync' | null;
+  tracking_pixel_id?: string | null;
+  open_count?: number;
+  opened_at?: string | null;
 }
 
 export interface InteractionWithMeta extends Interaction {
@@ -78,4 +88,26 @@ export interface DealFormData {
   value: string;
   close_date: string;
   notes: string;
+}
+
+export interface GmailStatus {
+  connected: boolean;
+  email?: string;
+}
+
+export interface EmailTemplate {
+  id: number;
+  name: string;
+  subject: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SendEmailPayload {
+  contact_id: number;
+  deal_id?: number | null;
+  to: string;
+  subject: string;
+  body: string;
 }

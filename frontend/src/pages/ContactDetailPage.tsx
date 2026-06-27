@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Building2, Mail, Phone, Pencil, Trash2, Loader2 } from 'lucide-react';
-import { fetchContact, deleteContact } from '../lib/api';
+import { ArrowLeft, Building2, Mail, Phone, Pencil, Trash2, Loader2, Send } from 'lucide-react';
+import { fetchContact, deleteContact, fetchGmailStatus } from '../lib/api';
 import ContactModal from '../components/contacts/ContactModal';
+import ComposeModal from '../components/email/ComposeModal';
 import Timeline from '../components/timeline/Timeline';
 import InteractionForm from '../components/timeline/InteractionForm';
 import type { Contact, DealStage } from '../types';
@@ -23,6 +24,12 @@ export default function ContactDetailPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<'timeline' | 'deals'>('timeline');
   const [editing, setEditing] = useState(false);
+  const [composing, setComposing] = useState(false);
+
+  const { data: gmailStatus } = useQuery({
+    queryKey: ['gmail-status'],
+    queryFn: fetchGmailStatus,
+  });
 
   const { data: contact, isLoading, error } = useQuery({
     queryKey: ['contact', parseInt(id!)],
@@ -92,6 +99,14 @@ export default function ContactDetailPage() {
           </div>
 
           <div className="flex gap-2">
+            {gmailStatus?.connected && contact.email && (
+              <button
+                onClick={() => setComposing(true)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600 transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" /> Send Email
+              </button>
+            )}
             <button
               onClick={() => setEditing(true)}
               className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
@@ -190,6 +205,13 @@ export default function ContactDetailPage() {
             setEditing(false);
             qc.invalidateQueries({ queryKey: ['contact', contact.id] });
           }}
+        />
+      )}
+
+      {composing && (
+        <ComposeModal
+          contact={contact as unknown as Contact}
+          onClose={() => setComposing(false)}
         />
       )}
     </div>

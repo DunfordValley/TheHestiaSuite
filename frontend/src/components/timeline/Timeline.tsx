@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Phone, Mail, FileText, Calendar, Trash2 } from 'lucide-react';
+import { Phone, Mail, FileText, Calendar, Trash2, Eye, RefreshCw } from 'lucide-react';
 import { deleteInteraction } from '../../lib/api';
 import type { InteractionWithMeta } from '../../types';
 
@@ -46,12 +46,17 @@ export default function Timeline({ interactions, contactId }: Props) {
             </div>
             <div className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3">
               <div className="flex items-start justify-between gap-2">
-                <div>
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     {config.label}
                   </span>
+                  {item.source === 'gmail_sync' && (
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                      <RefreshCw className="w-3 h-3" /> Synced
+                    </span>
+                  )}
                   {item.deal_title && (
-                    <span className="ml-2 text-xs text-indigo-600">· {item.deal_title}</span>
+                    <span className="text-xs text-indigo-600">· {item.deal_title}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -68,7 +73,30 @@ export default function Timeline({ interactions, contactId }: Props) {
                   </button>
                 </div>
               </div>
+
+              {item.email_subject && (
+                <p className="mt-0.5 text-xs text-gray-400 italic">{item.email_subject}</p>
+              )}
+
               <p className="mt-1.5 text-sm text-gray-700">{item.summary}</p>
+
+              {(item.source === 'gmail_sent' || item.source === 'gmail_sync') && (
+                <div className="mt-2">
+                  {item.open_count && item.open_count > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <Eye className="w-3 h-3" />
+                      Opened · {item.open_count}×
+                      {item.opened_at && (
+                        <span className="font-normal text-emerald-600">
+                          · {new Date(item.opened_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                        </span>
+                      )}
+                    </span>
+                  ) : item.source === 'gmail_sent' ? (
+                    <span className="text-xs text-gray-400">Not opened yet</span>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
         );

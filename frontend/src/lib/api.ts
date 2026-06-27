@@ -8,6 +8,9 @@ import type {
   DealStats,
   Interaction,
   InteractionWithMeta,
+  GmailStatus,
+  EmailTemplate,
+  SendEmailPayload,
 } from '../types';
 
 const api = axios.create({
@@ -80,3 +83,27 @@ export const createInteraction = (data: {
 
 export const deleteInteraction = (id: number) =>
   api.delete(`/interactions/${id}`).then(r => r.data);
+
+// Gmail
+export const fetchGmailStatus = () =>
+  api.get<GmailStatus>('/gmail/status').then(r => r.data);
+
+export const disconnectGmail = () =>
+  api.delete('/gmail/disconnect').then(r => r.data);
+
+// Email
+export const sendEmail = (data: SendEmailPayload) =>
+  api.post<Interaction>('/email/send', data).then(r => r.data);
+
+// Email templates
+export const fetchTemplates = () =>
+  api.get<EmailTemplate[]>('/email/templates').then(r => r.data);
+
+export const createTemplate = (data: Pick<EmailTemplate, 'name' | 'subject' | 'body'>) =>
+  api.post<EmailTemplate>('/email/templates', data).then(r => r.data);
+
+export const updateTemplate = (id: number, data: Pick<EmailTemplate, 'name' | 'subject' | 'body'>) =>
+  api.put<EmailTemplate>(`/email/templates/${id}`, data).then(r => r.data);
+
+export const deleteTemplate = (id: number) =>
+  api.delete(`/email/templates/${id}`).then(r => r.data);

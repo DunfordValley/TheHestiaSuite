@@ -23,6 +23,11 @@ services:
       DATABASE_URL: postgres://crm_user:${POSTGRES_PASSWORD:-SecurePassword123}@crm-db:5432/crm_prod
       PORT: 3001
       NODE_ENV: production
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      GMAIL_SYNC_INTERVAL_MS: ${GMAIL_SYNC_INTERVAL_MS:-300000}
     depends_on:
       crm-db:
         condition: service_healthy
