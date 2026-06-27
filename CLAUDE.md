@@ -97,10 +97,17 @@ docker compose down -v
 | `GOOGLE_CLIENT_SECRET`    | (none)                | OAuth 2.0 Client Secret from Google Cloud Console     |
 | `GOOGLE_REDIRECT_URI`     | (none)                | Must match URI registered in Google Cloud Console     |
 | `PUBLIC_URL`              | (none)                | Publicly reachable base URL — used for tracking pixel |
+| `GMAIL_SYNC_INTERVAL_MS`  | `300000`              | Inbox sync interval in ms (default 5 minutes)         |
 
-For development, `GOOGLE_REDIRECT_URI` should be `http://localhost:5173/api/gmail/callback`.
-For production, use the Cloudflare tunnel URL: `https://crm.yourcompany.com/api/gmail/callback`.
-Both must be registered as authorised redirect URIs in Google Cloud Console.
+`GOOGLE_REDIRECT_URI` depends on environment — all registered URIs must be added to Google Cloud Console:
+
+| Environment | Value |
+|---|---|
+| Local Docker | `http://localhost/api/gmail/callback` |
+| Local Vite dev server | `http://localhost:5173/api/gmail/callback` |
+| Production | `https://crm.yourcompany.com/api/gmail/callback` |
+
+`PUBLIC_URL` should be `http://localhost` for local testing (send works; open tracking requires a public URL).
 
 ## Database Migrations
 

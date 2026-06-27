@@ -245,12 +245,14 @@ The Gmail integration requires a Google Cloud project and OAuth 2.0 credentials.
    - Scopes: add `gmail.send` and `gmail.readonly`
    - Save and return to Credentials.
 4. Application type: **Web application**
-5. Under **Authorised redirect URIs**, add both:
-   - `http://localhost:5173/api/gmail/callback` (for local development)
-   - `https://crm.yourcompany.com/api/gmail/callback` (your production domain)
+5. Under **Authorised redirect URIs**, add all that apply:
+   - `http://localhost/api/gmail/callback` (local Docker testing)
+   - `https://crm.yourcompany.com/api/gmail/callback` (production)
 6. Click **Create**. Copy the **Client ID** and **Client Secret**.
 
 > The app does not need to be submitted for Google verification. You can leave it in "Testing" mode — add your Gmail address as a test user and it will work indefinitely for personal use.
+
+> **Which redirect URI to use:** set `GOOGLE_REDIRECT_URI` in `.env` to match the environment you are currently running. For local Docker it is `http://localhost/api/gmail/callback`; for production it is your Cloudflare tunnel domain. Only one value is active at a time — the others just need to be registered in Google Cloud Console so they are available when you switch environments.
 
 ### Step 3: Add Credentials to `.env`
 
@@ -258,7 +260,7 @@ The Gmail integration requires a Google Cloud project and OAuth 2.0 credentials.
 nano ~/hestia/.env
 ```
 
-Add these lines:
+Add these lines (production values):
 
 ```env
 GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
@@ -266,6 +268,8 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 GOOGLE_REDIRECT_URI=https://crm.yourcompany.com/api/gmail/callback
 PUBLIC_URL=https://crm.yourcompany.com
 ```
+
+> For **local Docker testing** only, use `http://localhost` for both the redirect URI and `PUBLIC_URL`. Open tracking will not register locally because Gmail fetches pixels from the public internet, but sending and inbox sync will work normally.
 
 Save and exit, then redeploy:
 
