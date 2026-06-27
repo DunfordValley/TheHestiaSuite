@@ -28,6 +28,7 @@ Target audience: 1–10 concurrent users. Resource footprint is minimal.
 |---------|---------|
 | **GitHub** | Source code repository; CI/CD bridge |
 | **Cloudflare** | Zero Trust Tunnel for secure public access; custom domain DNS |
+| **Google Cloud Console** | OAuth 2.0 credentials for Gmail integration |
 | **Supabase** *(optional)* | Cloud-managed PostgreSQL alternative to local Docker DB |
 
 ### Custom Domain
@@ -125,6 +126,15 @@ No host ports are exposed externally. All traffic flows through the encrypted Cl
 - Aggregate stats: total contacts, open deal count, pipeline value, deals won
 - Recent activity feed (last 10 interactions, cross-contact)
 
+### 4.5 Email Integration Module
+- Gmail OAuth 2.0 connection — user authorises CRM access to their Gmail account
+- Send emails directly from a contact's profile; sent emails auto-logged as interactions
+- Email templates with `{name}` and `{company}` placeholder substitution
+- Gmail inbox sync — background poll every 5 minutes; emails to/from known contacts auto-logged on their timelines
+- Open tracking — 1×1 tracking pixel embedded in sent emails; timeline shows "Opened" badge, open count, and timestamp
+- Settings page: Gmail connect/disconnect, template CRUD, last-synced timestamp
+- BCC-to-CRM logging deferred to v2 (covered by inbox sync for v1)
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -189,6 +199,19 @@ curl http://localhost:3001/api/health
 
 ---
 
+## 6b. Environment Variables
+
+| Variable                  | Required  | Description                                        |
+|---------------------------|-----------|----------------------------------------------------|
+| `POSTGRES_PASSWORD`       | Always    | PostgreSQL password                                |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Prod only | Activates `--profile production`                   |
+| `GOOGLE_CLIENT_ID`        | Email     | OAuth 2.0 Client ID from Google Cloud Console      |
+| `GOOGLE_CLIENT_SECRET`    | Email     | OAuth 2.0 Client Secret from Google Cloud Console  |
+| `GOOGLE_REDIRECT_URI`     | Email     | Registered redirect URI (dev and prod differ)      |
+| `PUBLIC_URL`              | Email     | Publicly reachable base URL for open tracking pixel |
+
+---
+
 ## 7. Database Schema
 
 ### contacts
@@ -228,3 +251,35 @@ curl http://localhost:3001/api/health
 | summary | TEXT NOT NULL | |
 | occurred_at | TIMESTAMPTZ | Default: NOW() |
 | created_at | TIMESTAMPTZ | Auto |
+| gmail_message_id | TEXT | Unique; prevents duplicate sync imports |
+| email_subject | TEXT | Subject line of sent/received email |
+| email_to | TEXT | Recipient address |
+| email_from | TEXT | Sender address |
+| direction | TEXT | `sent` or `received` |
+| source | TEXT | `manual`, `gmail_sent`, or `gmail_sync` |
+| tracking_pixel_id | TEXT | UUID used for open tracking |
+| open_count | INTEGER | Incremented on each pixel fetch |
+| opened_at | TIMESTAMPTZ | Timestamp of first open |
+
+### gmail_settings *(new — added in migration 002)*
+| Column | Type | Notes |
+|--------|------|-------|
+| id | SERIAL PK | |
+| gmail_email | TEXT | Connected Gmail address |
+| access_token | TEXT | Current OAuth access token |
+| refresh_token | TEXT | Long-lived refresh token |
+| token_expiry | TIMESTAMPTZ | When the access token expires |
+| history_id | TEXT | Gmail API history cursor |
+| last_synced_at | TIMESTAMPTZ | Timestamp of most recent sync run |
+| created_at | TIMESTAMPTZ | Auto |
+| updated_at | TIMESTAMPTZ | Auto |
+
+### email_templates *(new — added in migration 002)*
+| Column | Type | Notes |
+|--------|------|-------|
+| id | SERIAL PK | |
+| name | TEXT NOT NULL | Display name for template picker |
+| subject | TEXT NOT NULL | Supports `{name}`, `{company}` placeholders |
+| body | TEXT NOT NULL | Supports `{name}`, `{company}` placeholders |
+| created_at | TIMESTAMPTZ | Auto |
+| updated_at | TIMESTAMPTZ | Auto |

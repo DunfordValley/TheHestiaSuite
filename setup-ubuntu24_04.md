@@ -222,7 +222,67 @@ docker compose down -v
 
 ---
 
-## 9. Firewall Configuration (Optional but Recommended)
+## 9. Gmail Integration Setup (Optional)
+
+The Gmail integration requires a Google Cloud project and OAuth 2.0 credentials. This is a one-time setup performed by the administrator.
+
+### Step 1: Create a Google Cloud Project
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and sign in with any Google account.
+2. Click **Select a project → New Project**. Name it `Hestia CRM` (or similar).
+3. In the left menu, go to **APIs & Services → Library**.
+4. Search for **Gmail API** and click **Enable**.
+
+### Step 2: Create OAuth 2.0 Credentials
+
+1. Go to **APIs & Services → Credentials**.
+2. Click **Create Credentials → OAuth 2.0 Client ID**.
+3. If prompted, configure the OAuth consent screen first:
+   - User Type: **External**
+   - App name: `Hestia CRM`
+   - User support email: your email
+   - Add the Gmail address that will be used as an authorised test user
+   - Scopes: add `gmail.send` and `gmail.readonly`
+   - Save and return to Credentials.
+4. Application type: **Web application**
+5. Under **Authorised redirect URIs**, add both:
+   - `http://localhost:5173/api/gmail/callback` (for local development)
+   - `https://crm.yourcompany.com/api/gmail/callback` (your production domain)
+6. Click **Create**. Copy the **Client ID** and **Client Secret**.
+
+> The app does not need to be submitted for Google verification. You can leave it in "Testing" mode — add your Gmail address as a test user and it will work indefinitely for personal use.
+
+### Step 3: Add Credentials to `.env`
+
+```bash
+nano ~/hestia/.env
+```
+
+Add these lines:
+
+```env
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_REDIRECT_URI=https://crm.yourcompany.com/api/gmail/callback
+PUBLIC_URL=https://crm.yourcompany.com
+```
+
+Save and exit, then redeploy:
+
+```bash
+docker compose --profile production up -d --build
+```
+
+### Step 4: Connect Gmail in the CRM
+
+1. Open the CRM in your browser.
+2. Click **Settings** in the left sidebar.
+3. Click **Connect Gmail** and complete the Google sign-in.
+4. The Settings page will show a green "Connected" badge confirming the integration is active.
+
+---
+
+## 10. Firewall Configuration (Optional but Recommended)
 
 If you want to lock down the server while still allowing web access:
 
@@ -239,7 +299,7 @@ sudo ufw status
 
 ---
 
-## 10. Hardware Reference
+## 11. Hardware Reference
 
 | Component  | Minimum       | Recommended      |
 |------------|---------------|------------------|
@@ -251,7 +311,7 @@ sudo ufw status
 
 ---
 
-## Troubleshooting
+## 12. Troubleshooting
 
 **`docker compose ps` shows a container as `Restarting`**
 Check its logs: `docker compose logs crm-backend`. The most common cause is the database not being ready — wait 30 seconds and check again.

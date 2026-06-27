@@ -33,6 +33,9 @@ Log every call, email, note, and meeting against a contact. See the full chronol
 ### Live Dashboard
 Open the app to an instant snapshot of your sales health: contacts in the system, open deals, total pipeline value, and deals won. The recent activity feed surfaces the latest touchpoints across your whole team.
 
+### Gmail Integration — Your Inbox, Inside Your CRM
+Connect your Gmail account once, and the CRM becomes your email hub. Send emails directly from any contact's profile — they land in the recipient's inbox from your real Gmail address and are logged automatically on the contact's timeline. Reusable templates with personalisation placeholders mean professional, consistent outreach in seconds. The inbox sync quietly pulls received emails into the right contact's timeline every five minutes, so your activity history stays complete without manual effort. Open tracking tells you exactly when a sent email was read.
+
 ---
 
 ## The Self-Hosted Advantage
@@ -41,6 +44,8 @@ Open the app to an instant snapshot of your sales health: contacts in the system
 |---------|-----------------|-----------------|
 | Monthly cost | **$0** | $25–$150/user/month |
 | Your data on your server | **Yes** | No |
+| Gmail integration | **Yes** | Yes |
+| Email open tracking | **Yes** | Yes (paid tiers) |
 | Works on local network | **Yes** | No |
 | Customisable | **Fully** | Limited |
 | Vendor lock-in | **None** | High |

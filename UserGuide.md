@@ -124,6 +124,63 @@ Click the trash icon on the right side of any timeline entry to remove it.
 
 ---
 
+## Email
+
+The Hestia Suite connects to your Gmail account so you can send emails, use templates, and automatically track email activity — all without leaving the CRM.
+
+### Connecting Gmail
+
+Before you can send emails, you need to connect your Gmail account:
+
+1. Click **Settings** in the left sidebar.
+2. Under **Gmail**, click **Connect Gmail**.
+3. You will be redirected to Google — sign in and grant the CRM access to your Gmail account.
+4. You will be returned to the Settings page with a green "Connected" badge showing your Gmail address.
+
+To disconnect, click the **Disconnect** button on the Settings page.
+
+### Sending an Email
+
+1. Open a contact's profile page.
+2. Click the **Send Email** button in the contact header (only visible when Gmail is connected and the contact has an email address).
+3. The Compose window opens pre-filled with the contact's email address.
+4. Optionally select a **template** from the dropdown — the subject and body will be filled in automatically, with `{name}` and `{company}` replaced with the contact's details.
+5. Edit the subject and body as needed.
+6. Click **Send**.
+
+The email is sent from your Gmail account and immediately logged as an interaction on the contact's timeline.
+
+### Email Open Tracking
+
+When you send an email from the CRM, a small invisible tracking pixel is embedded. When the recipient opens the email, the timeline entry updates to show:
+
+- A green **Opened** badge with the number of times the email has been opened
+- The date and time of first open
+
+If the email has not been opened yet, the entry shows **Not opened yet** in grey.
+
+> Gmail's image proxy means the open timestamp reflects when Gmail fetched the image, which is typically within seconds of the email being opened.
+
+### Email Templates
+
+Templates let you save and reuse common email structures with personalisation placeholders.
+
+**Creating a template:**
+1. Go to **Settings → Email Templates**.
+2. Click **New Template**.
+3. Fill in a name, subject, and body. Use `{name}` and `{company}` as placeholders — they are replaced automatically when you compose.
+4. Click **Save**.
+
+**Editing or deleting:** click **Edit** or **Delete** next to any template in the list.
+
+### Inbox Sync
+
+The CRM quietly checks your Gmail inbox every 5 minutes. Any email sent to or received from a known contact's email address is automatically added to that contact's timeline — so your history stays complete even for emails you send directly from Gmail rather than from the CRM.
+
+Synced entries are marked with a **Synced** badge on the timeline to distinguish them from emails sent within the CRM.
+
+---
+
 ## Tips & Best Practices
 
 - **Log interactions immediately** after a call or meeting — details fade fast.
@@ -145,3 +202,19 @@ Click the trash icon on the right side of any timeline entry to remove it.
 
 **I can't access the CRM from outside the office**
 - The Cloudflare tunnel must be active. Ask your administrator to check: `sudo docker compose --profile production ps`.
+
+**The Send Email button is not showing on a contact's profile**
+- Check that Gmail is connected: go to **Settings** and confirm the green "Connected" badge is showing.
+- Check that the contact has an email address on their profile. The button only appears when both conditions are met.
+
+**I sent an email but it doesn't show on the timeline**
+- Refresh the page. The interaction is logged immediately on send — if it's still missing, check the backend logs: `sudo docker compose logs crm-backend`.
+
+**The "Opened" badge isn't appearing**
+- Open tracking relies on the recipient's email client loading images. Some clients (and some Gmail settings) block remote images. If images are blocked, no open event is recorded.
+- Also check that `PUBLIC_URL` in `.env` is set to the correct publicly reachable address — the tracking pixel must be fetchable from the internet.
+
+**Inbox sync isn't picking up emails**
+- The sync runs every 5 minutes. Wait a few minutes and refresh.
+- Check that the contact's email address in the CRM exactly matches the address used in Gmail.
+- Check the backend logs for sync errors: `sudo docker compose logs crm-backend`.

@@ -15,7 +15,8 @@ TheHestiaSuite/
 ├── CLAUDE.md          This file
 ├── UserGuide.md       End-user documentation
 ├── Requirements.md    Original requirements reference
-└── Brochure.md        Product overview
+├── Brochure.md        Product overview
+└── EmailIntegration.md Gmail integration implementation plan
 ```
 
 ## Tech Stack
@@ -31,6 +32,7 @@ TheHestiaSuite/
 | Backend     | Node.js 20, Express 4, TypeScript   |
 | Database    | PostgreSQL 16                       |
 | DB client   | node-postgres (pg)                  |
+| Email       | Gmail API via googleapis SDK        |
 | Container   | Docker + Docker Compose             |
 | Tunnel      | Cloudflare cloudflared              |
 
@@ -87,10 +89,18 @@ docker compose down -v
 
 ## Environment Variables
 
-| Variable               | Default               | Description                              |
-|------------------------|-----------------------|------------------------------------------|
-| `POSTGRES_PASSWORD`    | `SecurePassword123`   | PostgreSQL password — **change in prod** |
-| `CLOUDFLARE_TUNNEL_TOKEN` | (none)           | Required for `--profile production`      |
+| Variable                  | Default               | Description                                           |
+|---------------------------|-----------------------|-------------------------------------------------------|
+| `POSTGRES_PASSWORD`       | `SecurePassword123`   | PostgreSQL password — **change in prod**              |
+| `CLOUDFLARE_TUNNEL_TOKEN` | (none)                | Required for `--profile production`                   |
+| `GOOGLE_CLIENT_ID`        | (none)                | OAuth 2.0 Client ID from Google Cloud Console         |
+| `GOOGLE_CLIENT_SECRET`    | (none)                | OAuth 2.0 Client Secret from Google Cloud Console     |
+| `GOOGLE_REDIRECT_URI`     | (none)                | Must match URI registered in Google Cloud Console     |
+| `PUBLIC_URL`              | (none)                | Publicly reachable base URL — used for tracking pixel |
+
+For development, `GOOGLE_REDIRECT_URI` should be `http://localhost:5173/api/gmail/callback`.
+For production, use the Cloudflare tunnel URL: `https://crm.yourcompany.com/api/gmail/callback`.
+Both must be registered as authorised redirect URIs in Google Cloud Console.
 
 ## Database Migrations
 
@@ -129,6 +139,28 @@ Base URL: `http://localhost:3001/api` (dev) or via nginx proxy in Docker
 | POST   | /interactions         | Create interaction                |
 | DELETE | /interactions/:id     | Delete interaction                |
 
+### Gmail OAuth
+| Method | Path                 | Description                                        |
+|--------|----------------------|----------------------------------------------------|
+| GET    | /gmail/status        | Returns `{ connected, email? }`                    |
+| GET    | /gmail/auth          | Redirects browser to Google consent screen         |
+| GET    | /gmail/callback      | OAuth callback — exchanges code, stores tokens     |
+| DELETE | /gmail/disconnect    | Revokes token and clears stored credentials        |
+
+### Email
+| Method | Path                    | Description                                    |
+|--------|-------------------------|------------------------------------------------|
+| POST   | /email/send             | Send email via Gmail; auto-logs to timeline    |
+| GET    | /email/templates        | List all email templates                       |
+| POST   | /email/templates        | Create template                                |
+| PUT    | /email/templates/:id    | Update template                                |
+| DELETE | /email/templates/:id    | Delete template                                |
+
+### Open Tracking
+| Method | Path              | Description                                         |
+|--------|-------------------|-----------------------------------------------------|
+| GET    | /track/:pixelId   | Serves 1×1 GIF; records open on matching interaction |
+
 ### Health
 | Method | Path        | Description          |
 |--------|-------------|----------------------|
@@ -143,18 +175,21 @@ src/
 │   ├── contacts/
 │   │   ├── ContactCard.tsx     Grid card with edit/view actions
 │   │   └── ContactModal.tsx    Create/Edit form modal
+│   ├── email/
+│   │   └── ComposeModal.tsx    Email compose window with template picker
 │   ├── pipeline/
 │   │   ├── DealCard.tsx        Sortable Kanban card (@dnd-kit)
 │   │   ├── DealModal.tsx       New deal form modal
 │   │   └── PipelineColumn.tsx  Droppable stage column
 │   └── timeline/
-│       ├── Timeline.tsx        Chronological interaction list
+│       ├── Timeline.tsx        Chronological interaction list (with open tracking badges)
 │       └── InteractionForm.tsx Inline log-new-interaction form
 ├── pages/
 │   ├── DashboardPage.tsx       Stats + recent activity
 │   ├── ContactsPage.tsx        Search + contact grid
-│   ├── ContactDetailPage.tsx   Contact profile + tabs
-│   └── PipelinePage.tsx        Full Kanban board with DnD
+│   ├── ContactDetailPage.tsx   Contact profile + tabs (with Send Email button)
+│   ├── PipelinePage.tsx        Full Kanban board with DnD
+│   └── SettingsPage.tsx        Gmail connection + email template management
 ├── lib/
 │   └── api.ts                  Typed Axios wrappers for all endpoints
 └── types/
@@ -179,3 +214,11 @@ src/
 - [ ] Enable Cloudflare Access policy to restrict who can reach the tunnel
 - [ ] Run `docker compose --profile production up -d --build`
 - [ ] Verify `https://crm.yourcompany.com/api/health` returns `{"status":"ok"}`
+
+### Gmail Integration (additional)
+- [ ] Create a Google Cloud project and enable the Gmail API
+- [ ] Create an OAuth 2.0 Client ID (Web application type)
+- [ ] Register both dev and prod redirect URIs in Google Cloud Console
+- [ ] Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `PUBLIC_URL` in `.env`
+- [ ] Connect Gmail account via Settings → Gmail in the CRM UI
+- [ ] Send a test email and verify it appears on the contact's timeline
