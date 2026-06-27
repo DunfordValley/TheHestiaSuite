@@ -10,7 +10,29 @@ Log in to your Ubuntu machine and run the first-time update:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl git docker.io docker-compose
+sudo apt install -y curl git ca-certificates
+```
+
+Add Docker's official apt repository (required for the Compose v2 plugin):
+
+```bash
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+```
+
+Install Docker Engine and the Compose plugin:
+
+```bash
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
 Add your user to the Docker group so you don't need `sudo` on every Docker command:
@@ -24,6 +46,7 @@ Verify Docker is working:
 
 ```bash
 docker run hello-world
+docker compose version
 ```
 
 ---
